@@ -16,13 +16,18 @@ app.use(cors());
 app.use(handleValidateKey);
 
 app.get("/", (request, response) => {
-  response.status(200).json({status: "alive"})
+  response.status(200).json({status: "alive"});
 });
 
-app.post("/download", (request, response) => {
+app.post("/download", async (request, response) => {
   try {
     const videoURL = `https://youtu.be/${request.body.videoId}`;
     response.setHeader("Access-Control-Allow-Origin", "*");
+    
+    const info = await ytdl.getInfo(videoURL)
+    const title = info.videoDetails.title;
+    response.setHeader('Access-Control-Expose-Headers', 'Content-disposition')
+    response.setHeader('Content-disposition', `attachment; filename="${title}.mp4"`);
     ytdl(videoURL, {
       filter: (format) => {
         return format.container === "mp4" &&
